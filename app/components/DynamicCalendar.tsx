@@ -4,7 +4,7 @@ import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
-import { subMonths, addMonths } from 'date-fns'; // Update this import
+import { subMonths, addMonths } from 'date-fns';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import CalendarSlot from './CalendarSlot';
 import CalendarTopBar from './CalendarTopBar';
@@ -119,7 +119,11 @@ const DynamicCalendar: React.FC<DynamicCalendarProps> = ({ transactions }) => {
           onNavigate={setCurrentDate}
           components={{
             event: ({ event }: { event: CalendarEvent }) => (
-              <CalendarSlot name={event.name} amount={event.amount} category={event.category} />
+              <CalendarSlot
+                name={event.name}
+                amount={event.amount}
+                category={event.category}
+              />
             ),
           }}
         />
