@@ -1,5 +1,5 @@
 import React from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday } from 'date-fns';
 
 interface MiniCalendarProps {
   currentDate: Date;
@@ -10,6 +10,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, onDateChange }
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const today = new Date();
 
   return (
     <div className="mb-4">
@@ -23,12 +24,14 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, onDateChange }
             key={day.toISOString()}
             onClick={() => onDateChange(day)}
             className={`
-              text-center text-sm p-1 rounded-full
+              text-center text-sm w-8 h-8 flex items-center justify-center rounded-full
               ${isSameDay(day, currentDate)
                 ? 'bg-blue-500 text-white font-bold hover:bg-blue-600'
-                : isSameMonth(day, currentDate)
-                  ? 'text-gray-700 hover:bg-gray-100'
-                  : 'text-gray-400 hover:bg-gray-100'}
+                : isToday(day)
+                  ? 'bg-blue-100 text-blue-600 font-bold hover:bg-blue-200'
+                  : isSameMonth(day, currentDate)
+                    ? 'text-gray-700 hover:bg-gray-100'
+                    : 'text-gray-400 hover:bg-gray-100'}
             `}
           >
             {format(day, 'd')}

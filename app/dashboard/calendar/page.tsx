@@ -55,7 +55,11 @@ const CalendarPage: React.FC = () => {
         </div>
         <div className="flex-grow overflow-hidden">
           {view === 'day' ? (
-            <DayView transactions={transactions} currentDate={currentDate} />
+            <DayView 
+              transactions={transactions} 
+              currentDate={currentDate}
+              onDateChange={setCurrentDate}
+            />
           ) : (
             <div>Month view placeholder</div>
           )}

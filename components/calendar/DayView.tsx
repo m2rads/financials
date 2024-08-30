@@ -15,20 +15,21 @@ interface DayViewProps {
     transactions: Transaction[];
   }[];
   currentDate: Date;
+  onDateChange: (date: Date) => void;
 }
 
-const DayView: React.FC<DayViewProps> = ({ transactions, currentDate }) => {
+const DayView: React.FC<DayViewProps> = ({ transactions, currentDate, onDateChange }) => {
   const [selectedDate, setSelectedDate] = useState(currentDate);
   const [showNewEventModal, setShowNewEventModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const timeColumnRef = useRef<HTMLDivElement>(null);
   const eventsColumnRef = useRef<HTMLDivElement>(null);
 
-  const currentDateString = format(selectedDate, 'yyyy-MM-dd');
+  const currentDateString = format(currentDate, 'yyyy-MM-dd');
   const dayTransactions = transactions.find(t => t.date === currentDateString)?.transactions || [];
 
-  const handlePrevDay = () => setSelectedDate(prevDate => subDays(prevDate, 1));
-  const handleNextDay = () => setSelectedDate(prevDate => addDays(prevDate, 1));
+  const handlePrevDay = () => onDateChange(subDays(currentDate, 1));
+  const handleNextDay = () => onDateChange(addDays(currentDate, 1));
 
   const handleTimeSlotClick = (time: string) => {
     setSelectedTime(time);
@@ -63,7 +64,7 @@ const DayView: React.FC<DayViewProps> = ({ transactions, currentDate }) => {
           <Button variant="outline" size="icon" onClick={handleNextDay}>
             <IconChevronRight className="h-4 w-4" />
           </Button>
-          <h2 className="text-xl font-semibold">{format(selectedDate, 'MMMM d, yyyy')}</h2>
+          <h2 className="text-xl font-semibold">{format(currentDate, 'MMMM d, yyyy')}</h2>
         </div>
         <Button onClick={() => setShowNewEventModal(true)}>
           <IconPlus className="mr-2 h-4 w-4" />
