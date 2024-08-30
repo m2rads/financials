@@ -18,17 +18,21 @@ const CalendarPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<'day' | 'month'>('day');
   const transactions = dummyFinancialData.calendar_visualization;
-
-  // Convert transactions to events for the sidebar
-  const events: Event[] = transactions.flatMap(t => 
-    t.transactions.map(transaction => ({
-      id: `${t.date}-${transaction.name}`,
-      title: transaction.name,
-      date: new Date(t.date),
-      amount: transaction.amount,
-      category: transaction.category
-    }))
+  const [events, setEvents] = useState<Event[]>(
+    transactions.flatMap(t => 
+      t.transactions.map(transaction => ({
+        id: `${t.date}-${transaction.name}`,
+        title: transaction.name,
+        date: new Date(t.date),
+        amount: transaction.amount,
+        category: transaction.category
+      }))
+    )
   );
+
+  const addEvent = (newEvent: Event) => {
+    setEvents(prevEvents => [...prevEvents, newEvent]);
+  };
 
   return (
     <div className="flex h-screen">
@@ -36,6 +40,7 @@ const CalendarPage: React.FC = () => {
         currentDate={currentDate}
         onDateChange={setCurrentDate}
         events={events}
+        addEvent={addEvent}
       />
       <div className="flex-grow flex flex-col">
         <div className="p-4 border-b">
@@ -56,9 +61,10 @@ const CalendarPage: React.FC = () => {
         <div className="flex-grow overflow-hidden">
           {view === 'day' ? (
             <DayView 
-              transactions={transactions} 
+              events={events}
               currentDate={currentDate}
               onDateChange={setCurrentDate}
+              addEvent={addEvent}
             />
           ) : (
             <div>Month view placeholder</div>

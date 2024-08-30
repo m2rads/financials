@@ -3,30 +3,30 @@ import { format, addDays, subDays, parseISO } from 'date-fns';
 import { IconChevronLeft, IconChevronRight, IconPlus } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 
-interface Transaction {
+interface Event {
+  id: string;
+  title: string;
+  date: Date;
   amount: number;
-  name: string;
   category: string;
 }
 
 interface DayViewProps {
-  transactions: {
-    date: string;
-    transactions: Transaction[];
-  }[];
+  events: Event[];
   currentDate: Date;
   onDateChange: (date: Date) => void;
+  addEvent: (event: Event) => void;
 }
 
-const DayView: React.FC<DayViewProps> = ({ transactions, currentDate, onDateChange }) => {
-  const [selectedDate, setSelectedDate] = useState(currentDate);
+const DayView: React.FC<DayViewProps> = ({ events, currentDate, onDateChange, addEvent }) => {
   const [showNewEventModal, setShowNewEventModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [newEventTitle, setNewEventTitle] = useState('');
   const timeColumnRef = useRef<HTMLDivElement>(null);
   const eventsColumnRef = useRef<HTMLDivElement>(null);
 
   const currentDateString = format(currentDate, 'yyyy-MM-dd');
-  const dayTransactions = transactions.find(t => t.date === currentDateString)?.transactions || [];
+  const dayEvents = events.filter(event => format(event.date, 'yyyy-MM-dd') === currentDateString);
 
   const handlePrevDay = () => onDateChange(subDays(currentDate, 1));
   const handleNextDay = () => onDateChange(addDays(currentDate, 1));
@@ -34,6 +34,25 @@ const DayView: React.FC<DayViewProps> = ({ transactions, currentDate, onDateChan
   const handleTimeSlotClick = (time: string) => {
     setSelectedTime(time);
     setShowNewEventModal(true);
+  };
+
+  const handleCreateEvent = () => {
+    if (newEventTitle && selectedTime) {
+      const newEventDate = new Date(currentDate);
+      const [hours, minutes] = selectedTime.split(':');
+      newEventDate.setHours(parseInt(hours), parseInt(minutes));
+
+      addEvent({
+        id: Date.now().toString(),
+        title: newEventTitle,
+        date: newEventDate,
+        amount: 0,
+        category: 'Uncategorized'
+      });
+
+      setNewEventTitle('');
+      setShowNewEventModal(false);
+    }
   };
 
   const timeSlots = Array.from({ length: 24 }, (_, i) => 
@@ -80,42 +99,47 @@ const DayView: React.FC<DayViewProps> = ({ transactions, currentDate, onDateChan
           ))}
         </div>
         <div ref={eventsColumnRef} className="flex-grow overflow-y-auto">
-          {timeSlots.map((time) => (
-            <div 
-              key={time} 
-              className="h-20 border-b flex items-start p-2 cursor-pointer hover:bg-gray-50"
-              onClick={() => handleTimeSlotClick(time)}
-            >
-              {dayTransactions
-                .filter(t => {
-                  // Assuming transactions don't have a specific time, we'll just display them at the start of the day
-                  return time === '00:00';
-                })
-                .map((transaction, index) => (
-                  <div key={index} className="ml-2 p-2 bg-primary-100 rounded w-full sm:w-auto">
-                    <p className="text-sm font-medium">{transaction.name}</p>
-                    <p className="text-xs text-gray-600">${transaction.amount.toFixed(2)}</p>
+          {timeSlots.map((time) => {
+            const [hours, minutes] = time.split(':');
+            const slotEvents = dayEvents.filter(event => 
+              event.date.getHours() === parseInt(hours) && 
+              event.date.getMinutes() === parseInt(minutes)
+            );
+
+            return (
+              <div 
+                key={time} 
+                className="h-20 border-b flex items-start p-2 cursor-pointer hover:bg-gray-50"
+                onClick={() => handleTimeSlotClick(time)}
+              >
+                {slotEvents.map((event, index) => (
+                  <div key={event.id} className="ml-2 p-2 bg-primary-100 rounded w-full sm:w-auto">
+                    <p className="text-sm font-medium">{event.title}</p>
+                    <p className="text-xs text-gray-600">${event.amount.toFixed(2)}</p>
                   </div>
-                ))
-              }
-            </div>
-          ))}
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
       {showNewEventModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Create New Event</h3>
+            <input
+              type="text"
+              value={newEventTitle}
+              onChange={(e) => setNewEventTitle(e.target.value)}
+              placeholder="Event Title"
+              className="w-full p-2 border rounded mb-4"
+            />
             <p>Selected time: {selectedTime}</p>
-            {/* Add form fields for new event here */}
             <div className="mt-4 flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setShowNewEventModal(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => {
-                // Handle new event creation
-                setShowNewEventModal(false);
-              }}>
+              <Button onClick={handleCreateEvent}>
                 Create
               </Button>
             </div>
