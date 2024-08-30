@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import DayView from '@/components/calendar/DayView';
-import { dummyFinancialData } from '@/app/utils/dummyData';
+import { dummyFinancialData } from '@/utils/dummyData';
 
 const CalendarPage: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());

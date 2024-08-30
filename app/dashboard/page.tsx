@@ -3,7 +3,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import GoogleCalendar from '../../components/GoogleCalendar';
-import { dummyFinancialData } from '../utils/dummyData';
+import { dummyFinancialData } from '../../utils/dummyData';
 import EventTypesHorizontal from '../../components/EventTypesHorizontal';
 
 const GoogleOAuthProvider = dynamic<any>(
