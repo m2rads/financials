@@ -1,5 +1,7 @@
 import React from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, isToday, addMonths, subMonths } from 'date-fns';
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { Button } from '@/components/ui/button';
 
 interface MiniCalendarProps {
   currentDate: Date;
@@ -7,14 +9,31 @@ interface MiniCalendarProps {
 }
 
 const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, onDateChange }) => {
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
+  const [displayedMonth, setDisplayedMonth] = React.useState(startOfMonth(currentDate));
+  const monthStart = startOfMonth(displayedMonth);
+  const monthEnd = endOfMonth(displayedMonth);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const today = new Date();
 
+  const handlePrevMonth = () => {
+    setDisplayedMonth(prevMonth => subMonths(prevMonth, 1));
+  };
+
+  const handleNextMonth = () => {
+    setDisplayedMonth(prevMonth => addMonths(prevMonth, 1));
+  };
+
   return (
     <div className="mb-4">
-      <h3 className="text-lg font-semibold mb-2">{format(currentDate, 'MMMM yyyy')}</h3>
+      <div className="flex items-center justify-between mb-2">
+        <Button variant="outline" size="icon" onClick={handlePrevMonth}>
+          <IconChevronLeft className="h-4 w-4" />
+        </Button>
+        <h3 className="text-lg font-semibold">{format(displayedMonth, 'MMMM yyyy')}</h3>
+        <Button variant="outline" size="icon" onClick={handleNextMonth}>
+          <IconChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
       <div className="grid grid-cols-7 gap-1">
         {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
           <div key={day} className="text-center text-xs font-medium text-gray-500">{day}</div>
@@ -29,7 +48,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({ currentDate, onDateChange }
                 ? 'bg-blue-500 text-white font-bold hover:bg-blue-600'
                 : isToday(day)
                   ? 'bg-blue-100 text-blue-600 font-bold hover:bg-blue-200'
-                  : isSameMonth(day, currentDate)
+                  : isSameMonth(day, displayedMonth)
                     ? 'text-gray-700 hover:bg-gray-100'
                     : 'text-gray-400 hover:bg-gray-100'}
             `}
