@@ -4,7 +4,8 @@ import { format, isToday, isTomorrow, isAfter, startOfDay } from 'date-fns';
 interface Event {
   id: string;
   title: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   amount: number;
   category: string;
 }
@@ -15,9 +16,9 @@ interface EventsListProps {
 
 const EventsList: React.FC<EventsListProps> = ({ events }) => {
   const today = new Date();
-  const todayEvents = events.filter(event => isToday(event.date));
-  const tomorrowEvents = events.filter(event => isTomorrow(event.date));
-  const futureEvents = events.filter(event => isAfter(startOfDay(event.date), startOfDay(today)));
+  const todayEvents = events.filter(event => isToday(event.startDate));
+  const tomorrowEvents = events.filter(event => isTomorrow(event.startDate));
+  const futureEvents = events.filter(event => isAfter(startOfDay(event.startDate), startOfDay(today)));
 
   const renderEventList = (eventList: Event[], title: string) => (
     <div className="mb-4">
@@ -28,7 +29,9 @@ const EventsList: React.FC<EventsListProps> = ({ events }) => {
             <li key={event.id} className="bg-gray-100 p-2 rounded">
               <p className="font-medium">{event.title}</p>
               <p className="text-sm text-gray-600">${event.amount.toFixed(2)} - {event.category}</p>
-              <p className="text-xs text-gray-500">{format(event.date, 'h:mm a')}</p>
+              <p className="text-xs text-gray-500">
+                {format(event.startDate, 'HH:mm')} - {format(event.endDate, 'HH:mm')}
+              </p>
             </li>
           ))}
         </ul>
@@ -50,7 +53,9 @@ const EventsList: React.FC<EventsListProps> = ({ events }) => {
               <li key={event.id} className="bg-gray-100 p-2 rounded">
                 <p className="font-medium">{event.title}</p>
                 <p className="text-sm text-gray-600">${event.amount.toFixed(2)} - {event.category}</p>
-                <p className="text-xs text-gray-500">{format(event.date, 'MMM d, yyyy')}</p>
+                <p className="text-xs text-gray-500">
+                  {format(event.startDate, 'MMM d, yyyy HH:mm')} - {format(event.endDate, 'HH:mm')}
+                </p>
               </li>
             ))}
           </ul>

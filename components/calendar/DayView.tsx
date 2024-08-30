@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { format, addDays, subDays, parseISO } from 'date-fns';
+import { format, addDays, subDays, parseISO, isSameDay, addHours, parse, differenceInMinutes } from 'date-fns';
 import { IconChevronLeft, IconChevronRight, IconPlus } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
+import EventBlock from './EventBlock';
 
 interface Event {
   id: string;
   title: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   amount: number;
   category: string;
 }
@@ -22,30 +24,43 @@ const DayView: React.FC<DayViewProps> = ({ events, currentDate, onDateChange, ad
   const [showNewEventModal, setShowNewEventModal] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [newEventTitle, setNewEventTitle] = useState('');
+  const [newEventStartTime, setNewEventStartTime] = useState('09:00');
+  const [newEventEndTime, setNewEventEndTime] = useState('10:00');
   const timeColumnRef = useRef<HTMLDivElement>(null);
   const eventsColumnRef = useRef<HTMLDivElement>(null);
 
-  const currentDateString = format(currentDate, 'yyyy-MM-dd');
-  const dayEvents = events.filter(event => format(event.date, 'yyyy-MM-dd') === currentDateString);
+  const dayEvents = events.filter(event => isSameDay(event.startDate, currentDate));
 
   const handlePrevDay = () => onDateChange(subDays(currentDate, 1));
   const handleNextDay = () => onDateChange(addDays(currentDate, 1));
 
+  const parseTime = (time: string): Date => {
+    return parse(time, 'HH:mm', new Date());
+  };
+
   const handleTimeSlotClick = (time: string) => {
     setSelectedTime(time);
+    setNewEventStartTime(time);
+    const endTime = addHours(parseTime(time), 1);
+    setNewEventEndTime(format(endTime, 'HH:mm'));
     setShowNewEventModal(true);
   };
 
   const handleCreateEvent = () => {
     if (newEventTitle && selectedTime) {
-      const newEventDate = new Date(currentDate);
-      const [hours, minutes] = selectedTime.split(':');
-      newEventDate.setHours(parseInt(hours), parseInt(minutes));
+      const newEventStartDate = new Date(currentDate);
+      const [startHours, startMinutes] = newEventStartTime.split(':');
+      newEventStartDate.setHours(parseInt(startHours), parseInt(startMinutes));
+
+      const newEventEndDate = new Date(currentDate);
+      const [endHours, endMinutes] = newEventEndTime.split(':');
+      newEventEndDate.setHours(parseInt(endHours), parseInt(endMinutes));
 
       addEvent({
         id: Date.now().toString(),
         title: newEventTitle,
-        date: newEventDate,
+        startDate: newEventStartDate,
+        endDate: newEventEndDate,
         amount: 0,
         category: 'Uncategorized'
       });
@@ -58,6 +73,32 @@ const DayView: React.FC<DayViewProps> = ({ events, currentDate, onDateChange, ad
   const timeSlots = Array.from({ length: 24 }, (_, i) => 
     format(new Date().setHours(i, 0, 0, 0), 'HH:mm')
   );
+
+  const renderEvents = () => {
+    const dayEvents = events.filter(event => isSameDay(event.startDate, currentDate));
+    return dayEvents.map(event => {
+      const startOfDay = new Date(currentDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const startMinutes = differenceInMinutes(event.startDate, startOfDay);
+      const endMinutes = differenceInMinutes(event.endDate, startOfDay);
+      const duration = endMinutes - startMinutes;
+      
+      const top = (startMinutes / 1440) * 100; // 1440 minutes in a day
+      const height = (duration / 1440) * 100;
+
+      console.log(`Event: ${event.title}, Start: ${event.startDate}, Top: ${top}%, Height: ${height}%`);
+
+      return (
+        <EventBlock
+          key={event.id}
+          event={event}
+          top={top}
+          height={height}
+        />
+      );
+    });
+  };
 
   useEffect(() => {
     const timeColumn = timeColumnRef.current;
@@ -74,7 +115,7 @@ const DayView: React.FC<DayViewProps> = ({ events, currentDate, onDateChange, ad
   }, []);
 
   return (
-    <div className="bg-white rounded-lg shadow flex flex-col h-full m-2"> {/* Added m-2 for margin */}
+    <div className="bg-white rounded-lg shadow flex flex-col h-full m-2">
       <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-b">
         <div className="flex items-center space-x-4 mb-4 sm:mb-0">
           <Button variant="outline" size="icon" onClick={handlePrevDay}>
@@ -98,29 +139,15 @@ const DayView: React.FC<DayViewProps> = ({ events, currentDate, onDateChange, ad
             </div>
           ))}
         </div>
-        <div ref={eventsColumnRef} className="flex-grow overflow-y-auto">
-          {timeSlots.map((time) => {
-            const [hours, minutes] = time.split(':');
-            const slotEvents = dayEvents.filter(event => 
-              event.date.getHours() === parseInt(hours) && 
-              event.date.getMinutes() === parseInt(minutes)
-            );
-
-            return (
-              <div 
-                key={time} 
-                className="h-20 border-b flex items-start p-2 cursor-pointer hover:bg-gray-50"
-                onClick={() => handleTimeSlotClick(time)}
-              >
-                {slotEvents.map((event, index) => (
-                  <div key={event.id} className="ml-2 p-2 bg-primary-100 rounded w-full sm:w-auto">
-                    <p className="text-sm font-medium">{event.title}</p>
-                    <p className="text-xs text-gray-600">${event.amount.toFixed(2)}</p>
-                  </div>
-                ))}
-              </div>
-            );
-          })}
+        <div ref={eventsColumnRef} className="flex-grow overflow-y-auto relative">
+          {timeSlots.map((time) => (
+            <div 
+              key={time} 
+              className="h-20 border-b flex items-start p-2 cursor-pointer hover:bg-gray-50"
+              onClick={() => handleTimeSlotClick(time)}
+            />
+          ))}
+          {renderEvents()}
         </div>
       </div>
       {showNewEventModal && (
@@ -134,7 +161,26 @@ const DayView: React.FC<DayViewProps> = ({ events, currentDate, onDateChange, ad
               placeholder="Event Title"
               className="w-full p-2 border rounded mb-4"
             />
-            <p>Selected time: {selectedTime}</p>
+            <div className="flex justify-between mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Start Time</label>
+                <input
+                  type="time"
+                  value={newEventStartTime}
+                  onChange={(e) => setNewEventStartTime(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">End Time</label>
+                <input
+                  type="time"
+                  value={newEventEndTime}
+                  onChange={(e) => setNewEventEndTime(e.target.value)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+            </div>
             <div className="mt-4 flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setShowNewEventModal(false)}>
                 Cancel

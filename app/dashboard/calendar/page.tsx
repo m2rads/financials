@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 interface Event {
   id: string;
   title: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   amount: number;
   category: string;
 }
@@ -20,13 +21,17 @@ const CalendarPage: React.FC = () => {
   const transactions = dummyFinancialData.calendar_visualization;
   const [events, setEvents] = useState<Event[]>(
     transactions.flatMap(t => 
-      t.transactions.map(transaction => ({
-        id: `${t.date}-${transaction.name}`,
-        title: transaction.name,
-        date: new Date(t.date),
-        amount: transaction.amount,
-        category: transaction.category
-      }))
+      t.transactions.map(transaction => {
+        const date = new Date(t.date);
+        return {
+          id: `${t.date}-${transaction.name}`,
+          title: transaction.name,
+          startDate: date,
+          endDate: new Date(date.getTime() + 60 * 60 * 1000), // Default 1 hour duration
+          amount: transaction.amount,
+          category: transaction.category
+        };
+      })
     )
   );
 
