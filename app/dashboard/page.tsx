@@ -2,9 +2,9 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import GoogleCalendar from '../components/GoogleCalendar';
+import GoogleCalendar from '../../components/GoogleCalendar';
 import { dummyFinancialData } from '../utils/dummyData';
-import EventTypesHorizontal from '../components/EventTypesHorizontal';
+import EventTypesHorizontal from '../../components/EventTypesHorizontal';
 
 const GoogleOAuthProvider = dynamic<any>(
   () => import('@react-oauth/google').then((mod) => mod.GoogleOAuthProvider),

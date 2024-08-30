@@ -8,7 +8,7 @@ import { subMonths, addMonths } from 'date-fns';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import CalendarSlot from './CalendarSlot';
 import CalendarTopBar from './CalendarTopBar';
-import SearchBar from './SearchBar';
+import SearchBar from '@/components/SearchBar';
 
 const locales = {
   'en-US': require('date-fns/locale/en-US'),
