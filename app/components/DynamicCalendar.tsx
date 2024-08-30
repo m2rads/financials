@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
@@ -8,6 +8,7 @@ import { subMonths, addMonths } from 'date-fns'; // Update this import
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import CalendarSlot from './CalendarSlot';
 import CalendarTopBar from './CalendarTopBar';
+import SearchBar from './SearchBar';
 
 const locales = {
   'en-US': require('date-fns/locale/en-US'),
@@ -41,6 +42,33 @@ interface DynamicCalendarProps {
 
 const DynamicCalendar: React.FC<DynamicCalendarProps> = ({ transactions }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [filteredEvents, setFilteredEvents] = useState<CalendarEvent[]>(
+    transactions.flatMap(({ date, transactions }) =>
+      transactions.map((transaction) => ({
+        ...transaction,
+        start: new Date(date),
+        end: new Date(date),
+      }))
+    )
+  );
+
+  const handleSearch = useCallback((searchTerm: string) => {
+    const lowercasedTerm = searchTerm.toLowerCase();
+    const filtered = transactions.flatMap(({ date, transactions }) =>
+      transactions
+        .filter(
+          (transaction) =>
+            transaction.name.toLowerCase().includes(lowercasedTerm) ||
+            transaction.category.toLowerCase().includes(lowercasedTerm)
+        )
+        .map((transaction) => ({
+          ...transaction,
+          start: new Date(date),
+          end: new Date(date),
+        }))
+    );
+    setFilteredEvents(filtered);
+  }, [transactions]);
 
   const events: CalendarEvent[] = transactions.flatMap(({ date, transactions }) =>
     transactions.map((transaction) => ({
@@ -76,10 +104,13 @@ const DynamicCalendar: React.FC<DynamicCalendarProps> = ({ transactions }) => {
         onNextMonth={handleNextMonth}
         onToday={handleToday}
       />
+      <div className="mb-4">
+        <SearchBar onSearch={handleSearch} />
+      </div>
       <div className="flex-grow">
         <Calendar
           localizer={localizer}
-          events={events}
+          events={filteredEvents}
           startAccessor="start"
           endAccessor="end"
           style={{ height: '100%' }}
