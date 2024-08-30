@@ -4,6 +4,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import GoogleCalendar from '../components/GoogleCalendar';
 import { dummyFinancialData } from '../utils/dummyData';
+import EventTypesHorizontal from '../components/EventTypesHorizontal';
 
 const GoogleOAuthProvider = dynamic<any>(
   () => import('@react-oauth/google').then((mod) => mod.GoogleOAuthProvider),
@@ -25,6 +26,7 @@ export default function Dashboard() {
     <GoogleOAuthProvider clientId={clientId}>
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-4">Financial Dashboard</h1>
+        <EventTypesHorizontal />
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">Transaction Calendar</h2>
           <GoogleCalendar transactions={transactions} />

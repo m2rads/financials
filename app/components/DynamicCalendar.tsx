@@ -5,6 +5,7 @@ import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import CalendarSlot from './CalendarSlot';
 
 const locales = {
   'en-US': require('date-fns/locale/en-US'),
@@ -27,7 +28,6 @@ interface Transaction {
 interface CalendarEvent extends Transaction {
   start: Date;
   end: Date;
-  title: string;
 }
 
 interface DynamicCalendarProps {
@@ -43,18 +43,13 @@ const DynamicCalendar: React.FC<DynamicCalendarProps> = ({ transactions }) => {
       ...transaction,
       start: new Date(date),
       end: new Date(date),
-      title: `${transaction.name} - $${transaction.amount}`,
     }))
   );
 
-  const eventStyleGetter = (event: CalendarEvent) => {
-    let backgroundColor = '#3174ad';
-    if (event.amount < 0) {
-      backgroundColor = '#e74c3c'; // Red for negative amounts (expenses)
-    } else if (event.amount > 1000) {
-      backgroundColor = '#2ecc71'; // Green for large positive amounts (income)
-    }
-    return { style: { backgroundColor } };
+  const eventPropGetter = (event: CalendarEvent) => {
+    return {
+      className: 'bg-transparent border-none',
+    };
   };
 
   return (
@@ -64,7 +59,12 @@ const DynamicCalendar: React.FC<DynamicCalendarProps> = ({ transactions }) => {
       startAccessor="start"
       endAccessor="end"
       style={{ height: '100%' }}
-      eventPropGetter={eventStyleGetter}
+      eventPropGetter={eventPropGetter}
+      components={{
+        event: ({ event }: { event: CalendarEvent }) => (
+          <CalendarSlot name={event.name} amount={event.amount} category={event.category} />
+        ),
+      }}
     />
   );
 };
