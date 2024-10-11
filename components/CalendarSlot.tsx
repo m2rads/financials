@@ -48,7 +48,7 @@ const CalendarSlot: React.FC<CalendarSlotProps> = ({ name, amount, category }) =
       </div>
       <div className="flex-grow">
         <p className="text-sm font-medium text-gray-800 truncate">{name}</p>
-        <p className="text-xs text-gray-600">${amount.toFixed(2)}</p>
+        <p className="text-xs text-gray-600">Amount ${amount.toFixed(2)}</p>
       </div>
     </div>
   );
